@@ -1,0 +1,50 @@
+<?php
+
+return [
+    'Goods' => 'Goods',
+    'name' => 'Name',
+    'skus' => 'SKU',
+    'category' => 'Category',
+    'description' => 'Description',
+    'Action' => 'Action',
+    'edit' => 'Edit',
+    'generate_qr_code' => 'Generate QR Code',
+    'delete' => 'Delete',
+    'product' => 'Product',
+    'show' => 'Show',
+    'add' => 'add',
+    'cm' => 'cm',
+    'width' => 'width',
+    'height' => 'height',
+    'length' => 'length',
+    'dimensions' => 'dimensions',
+
+    //
+    'Size' => 'Size',
+    'product_name' => 'Product name',
+    'quantity' => 'Quantity',
+    'price' => 'price',
+    'Sizes' => 'Sizes',
+    'store_name' => 'Store name',
+    'photo' => 'Good photo',
+    'expire_date' => 'Expire date',
+    'expire_date_exit' => 'exit',
+    'This number of product is not available in stock' => 'This number of product is not available in stock',
+    'instock' => 'In stock',
+    'import_good' => 'import goods',
+    'warehouse_branch' => 'warehouse branch',
+    "export_good"=>"download goods file",
+    "client_name" => "Client name",
+    "print"=>'print',
+    'warehouse_content' => 'Warehouse Content',
+    'status' => 'Status',
+    'number' => 'Number',
+    'date' => 'Date',
+    'damaged_goods_list' => 'Damaged Goods List',
+    'good' => 'good',
+    'id' => 'id',
+    'client' => 'client',
+
+
+
+];

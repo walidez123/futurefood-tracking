@@ -1,0 +1,40 @@
+<?php
+$client = new Client();
+$headers = [
+  'Content-Type' => 'application/x-www-form-urlencoded',
+  'cache-control' => 'no-cache'
+];
+$options = [
+'form_params' => [
+  'api_key' => '',
+  'customerOrderNo' => '',
+  'noOfPieces' => '',
+  'crates' => '',
+  'weightKgs' => '',
+  'dimensionsCm' => '',
+  'itemDescription' => '',
+  'paymentMethod' => '',
+  'paymentAmount' => '',
+  'consigneeName' => '',
+  'consigneeMobile' => '966',
+  'consigneePhone' => '',
+  'consigneeEmail' => '',
+  'consigneeCity' => '',
+  'consigneeCommunity' => '',
+  'consigneeAddress' => '',
+  'consigneeFlatFloor' => '',
+  'consigneeLatLong' => '',
+  'consigneeSplInstructions' => '',
+  'store' => '',
+  'shipperName' => '',
+  'shipperMobile' => '',
+  'shipperEmail' => '',
+  'shipperCity' => '',
+  'shipperDistrict' => '',
+  'shipperAddress' => '',
+  'shipperLatLong' => '',
+  'pickuppoint_id' => ''
+]];
+$request = new Request('POST', 'https://dev.mylabaih.com/partners/api/order/create', $headers);
+$res = $client->sendAsync($request, $options)->wait();
+echo $res->getBody();

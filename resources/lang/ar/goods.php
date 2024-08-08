@@ -1,0 +1,50 @@
+<?php
+
+return [
+
+    'Goods' => 'المنتجات',
+    'name' => 'الأسم',
+    'skus' => 'SKU',
+    'category' => 'التصنيف',
+    'description' => 'الوصف',
+    'Action' => 'العمليات',
+    'edit' => 'تعديل',
+    'generate_qr_code' => 'إنشاء رمز الاستجابة السريعة',
+    'delete' => 'حذف',
+    'product' => 'المنتج',
+    'show' => 'عرض',
+    'add' => 'إضافة',
+    'cm' => 'سم',
+    'width' => 'العرض',
+    'height' => 'الإرتفاع',
+    'length' => 'الطول',
+    'dimensions' => 'الأبعاد',
+    //
+    'Size' => 'الحجم',
+    'product_name' => 'أسم المنتج',
+    'quantity' => 'الكمية',
+    'price' => 'السعر',
+    'Sizes' => 'الأحجام',
+    'store_name' => 'اسم المتجر',
+    'photo' => 'صورة المنتج',
+    'expire_date' => 'تاريخ الصلاحية',
+    'date' => 'تاريخ التسكين',
+    'expire_date_exit' => 'يوجد للمنتج تاريخ صلاحية',
+    'This number of product is not available in stock' => 'لا يتوفر هذا العدد من المنتج فى المخزن',
+    'instock' => 'فى المخزن',
+    'import_good' => 'إستراد المنتجات',
+    'warehouse_branch' => 'فرع المستودع',
+    "export_good"=>"تحميل ملف الإستراد",
+    "client_name" => "اسم العميل",
+    "print"=>"طباعة",
+    'warehouse_content' => 'محتويات المستودع',
+    'status' => 'الحالة',
+    'number' => 'العدد',
+   'damaged_goods_list' => 'قائمة السلع التالفة',
+   'good' => 'السلعة',
+   'id' => 'الرقم التعريفي',
+   'client' => 'العميل',
+
+
+
+];

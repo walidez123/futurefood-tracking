@@ -61,6 +61,11 @@
           <i class="fa fa-link"></i>
           Generate Api To Client
       </button>
+      <button type="button" class="btn btn-info pull-center" data-toggle="modal"
+      data-target="#add-webhook">
+      <i class="fa fa-link"></i>
+      webhook To Client
+  </button>
       @endif
             </h3>
           </div><!-- /.box-header -->
@@ -74,6 +79,8 @@
                   <th>Store</th>
                   <th>domain</th>
                   <th>Api Token</th>
+                  <th>webhook</th>
+
                   <th>Action</th>
                 </tr>
               </thead>
@@ -96,6 +103,7 @@
                   <td>{{$client->store_name}}</td>
                   <td>{{$client->domain}}</td>
                   <td style="word-break: break-word;">{{$client->api_token}}</td>
+                  <td>{{$client->webhook_url}}</td>
                   <td>
                   @if (in_array('delete_api_client', $permissionsTitle))
                     <form class="pull-right" style="display: inline;" action="{{route('clients-api.destroy', $client->id)}}" method="POST">
@@ -173,6 +181,47 @@
     <!-- /.modal-content -->
 </div>
 <!-- /.modal-dialog -->
+<div class="modal fade" id="add-webhook">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title">Add client webhook url</h4>
+          </div>
+          <form action="{{route('clients-api.webhook')}}" method="POST">
+              <div class="modal-body">
+                  @csrf
+                  <div class="form-group">
+                      <label  class="control-label">Clients *</label>
+                          <select style="width:100%" class="form-control select2" name="user_id" required>
+                              <option value="">Select Client</option>
+                              @foreach ($apiList as $client)
+                              <option value="{{$client->id}}">{{$client->name}} | {{$client->store_name}}</option>
+                              @endforeach
+
+                          </select>
+                          @error('user_id')
+                              <span class="invalid-feedback text-danger" role="alert">
+                                  <strong>{{ $message }}</strong>
+                              </span>
+                          @enderror
+                      </div>
+                      <div class="form-group">
+                          <label  class="control-label">webhook url *</label>
+                          <input type="text" class="form-control" name="webhook_url" id="webhook_url" required>
+                      </div>
+                    
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-default pull-left" data-dismiss="modal">@lang('order.Close')</button>
+                  <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+          </form>
+      </div>
+  </div>
+  <!-- /.modal-content -->
+</div>
 @endsection
 
 @section('js')

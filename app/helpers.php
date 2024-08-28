@@ -136,7 +136,7 @@ function send_otp($order_id, $status_id, $delegate_id)
 }
 ///
 
-function GloablChangeStatus($order, $status_id, $latitude = null, $longitude = null)
+function GloablChangeStatus($order, $status_id, $latitude = null, $longitude = null,$note=null)
 {
     
     $order->update([
@@ -153,7 +153,7 @@ function GloablChangeStatus($order, $status_id, $latitude = null, $longitude = n
             FarmApi($order->reference_number);
          }
     ClientTransactions::addToClientTransactions($order);
-    OrderHistory::addToHistory($order->id, $status_id, $note = null, $latitude, $longitude);
+    OrderHistory::addToHistory($order->id, $status_id, $note, $latitude, $longitude);
    
     
 

@@ -21,7 +21,7 @@ class ModelObserver
      */
     public function updated(Order $order): void
     {
-        if($order->user->webhook_url!= null && $order->user->id != 611 && $order->user->id != 572){
+        if($order->user->webhook_url!= null ){
             if ($order->isDirty('status_id')) {
                 event(new StatusChanged($order));
             }

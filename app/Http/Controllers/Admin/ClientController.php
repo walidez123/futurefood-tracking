@@ -1056,6 +1056,29 @@ class ClientController extends Controller
 
     }
 
+    public function apiStorewebhook(Request $request)
+    {
+        $id = $request->user_id;
+        $client = User::findOrFail($id);
+        if ($client) {
+            User::where('id', $id)->update([
+                'webhook_url' => $request->webhook_url,
+            ]);
+            $notification = [
+                'message' => '<h3>Save Successfully</h3>',
+                'alert-type' => 'success',
+            ];
+        } else {
+            $notification = [
+                'message' => '<h3>Client Not Exist</h3>',
+                'alert-type' => 'error',
+            ];
+        }
+
+        return back()->with($notification);
+
+    }
+
  
 
 

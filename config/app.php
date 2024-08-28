@@ -199,8 +199,9 @@ return [
         'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
         'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
         'PDF' => Barryvdh\DomPDF\Facade\Pdf::class,
-
         'FCM' => LaravelFCM\Facades\FCM::class,
+
+
         'FCMGroup' => LaravelFCM\Facades\FCMGroup::class, // Optional
 
     ])->toArray(),

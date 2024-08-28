@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api\v2\Mobile;
+namespace App\Http\Controllers\Api\Resturant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AddressResource;
 use App\Http\Resources\BalanceResource;
 use App\Mail\ContactEmail;
+use App\Models\Address;
 use App\Models\ClientTransactions;
 use App\Models\Contact;
 use App\Models\User;
@@ -12,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
+use Validator;
 
 class ProfileController extends Controller
 {
@@ -29,7 +31,11 @@ class ProfileController extends Controller
             'email' => 'required|unique:users,email,'.$id,
             'phone' => 'required|unique:users,phone,'.$id,
             'city_id ' => 'numeric',
-            'region_id' => 'numeric',
+            'store_name' => 'required',
+            'website' => 'required',
+            'Payment_period' => 'numeric',
+            'work' => 'numeric',
+
         ];
         $validator = Validator::make($request->all(), $rules);
 
@@ -40,28 +46,20 @@ class ProfileController extends Controller
             ]);
         }
         //   return $request->all();
-        $update = User::where('id', $id)->where('user_type', 'delegate')->update($request->all());
+        $update = User::where('id', $id)->where('user_type', 'client')->update($request->all());
         //
-        if ($request->hasFile('avatar')) {
-            $avatar = 'avatar/delegate/'.$request->file('avatar')->hashName();
-            $uploaded = $request->file('avatar')->storeAs('public', $avatar);
-            $user = User::where('id', $id)->where('user_type', 'delegate')->first();
-            $user->avatar = $avatar;
-            $user->save();
-
-        }
 
         //
         if ($update) {
             return response()->json([
                 'success' => 1,
-                'message' => __('api_massage.Saved successfully'),
+                'message' => 'profile updated successfully',
             ], 200);
         }
 
         return response()->json([
             'success' => 0,
-            'message' => __('api_massage.try again'),
+            'message' => 'somthing wrong please try againe later',
         ], 500);
     }
 
@@ -70,12 +68,8 @@ class ProfileController extends Controller
         $user = auth()->user();
 
         if ($user) {
-            $balance = BalanceResource::collection(
-                ClientTransactions::where('user_id', $user->id)
-                    ->latest() // لترتيب النتائج من الأحدث إلى الأقدم
-                    ->take(50) // لتحديد آخر 50 نتيجة فقط
-                    ->get()
-            );
+            $balance = BalanceResource::collection(ClientTransactions::where('user_id', $user->id)->get());
+
             return response()->json([
                 'success' => 1,
                 'balance' => $balance,
@@ -83,7 +77,7 @@ class ProfileController extends Controller
         } else {
             return response()->json([
                 'success' => 0,
-                'message' => __('api_massage.Invalid Authentication'),
+                'message' => 'Invalid Authentication',
             ], 503);
         }
 
@@ -93,11 +87,8 @@ class ProfileController extends Controller
     {
 
         $user = Auth::user();
-        $user=User::find($user->id);
-        if($user)
-        {
 
-        if ($user->user_type == 'delegate') {
+        if ($user->user_type == 'client') {
             $rules = [
                 'old_password' => 'required',
                 'new_password' => 'required|min:6',
@@ -114,8 +105,7 @@ class ProfileController extends Controller
             if (! Hash::check($request->old_password, $user->password)) {
                 return response()->json([
                     'success' => 0,
-                    'message' => __('api_massage.Invalid Old Password'),
-
+                    'message' => 'Invalid Old Password',
                 ], 404);
             }
             $user->fill([
@@ -124,17 +114,12 @@ class ProfileController extends Controller
 
             return response()->json([
                 'success' => 1,
-                'message' => __('api_massage.password changed successfully'),
+                'message' => 'password changed successfully',
             ], 200);
         } else {
             return response()->json([
                 'success' => 0,
-                'message' => __('api_massage.Invalid Authentication'),
-            ], 503);
-        }}else{
-            return response()->json([
-                'success' => 0,
-                'message' => __('api_massage.Invalid Authentication'),
+                'message' => 'Invalid Authentication',
             ], 503);
         }
 
@@ -170,19 +155,46 @@ class ProfileController extends Controller
 
                 return response()->json([
                     'success' => 1,
-                    'message' => __('api_massage.Saved successfully'),
+                    'massage' => 'your message sent Successfuly',
                 ], 200);
             } else {
                 return response()->json([
                     'success' => 0,
-                    'message' => __('api_massage.try again'),
+                    'message' => 'some thing is wrong',
                 ], 503);
             }
 
         } else {
             return response()->json([
                 'success' => 0,
-                'message' => __('api_massage.Invalid Authentication'),
+                'message' => 'Invalid Authentication',
+            ], 503);
+        }
+
+    }
+
+    public function branches()
+    {
+        $user = auth()->user();
+        if ($user) {
+            $Addresses = AddressResource::collection(Address::where('user_id', $user->id)->get());
+
+            if ($Addresses) {
+                return response()->json([
+                    'success' => 1,
+                    'Addresses' => $Addresses,
+
+                ], 200);
+            } else {
+                return response()->json([
+                    'success' => 0,
+                    'message' => 'wrong',
+                ], 503);
+            }
+        } else {
+            return response()->json([
+                'success' => 0,
+                'message' => 'Invalid Authentication',
             ], 503);
         }
 

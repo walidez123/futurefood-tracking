@@ -146,7 +146,7 @@ class OrderShipmentReturnCreatingListener
             'order_weight'                      => $orderWeight,
             'amount'                            => $totalAmount,
             'is_returned'                       => 1,
-            'work_type'                        => $user->work,
+            'work_type'                         => 2,
             'company_id'                        => $user->company_id,
         ];
 

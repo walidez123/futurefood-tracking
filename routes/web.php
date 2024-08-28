@@ -74,6 +74,19 @@ Route::get('/linkstorage', function () {
     Artisan::call('storage:link');
 });
 
+Route::get('/key', function () {
+    Artisan::call('key:generate');
+
+});
+Route::get('/clear', function () {
+    Artisan::call('config:clear');
+        Artisan::call('config:cache');
+
+
+
+});
+
+
 Auth::routes();
 Route::group(['prefix' => LaravelLocalization::setLocale()], function () {
 
@@ -269,6 +282,8 @@ Route::group(['prefix' => LaravelLocalization::setLocale()], function () {
         Route::POST('/clients/api', '\App\Http\Controllers\Admin\ClientController@apiStore')->name('clients-api.store');
         Route::DELETE('/clients/api/{id}', '\App\Http\Controllers\Admin\ClientController@apiDestroy')
             ->name('clients-api.destroy');
+        Route::POST('/clients/webhook', '\App\Http\Controllers\Admin\ClientController@apiStorewebhook')->name('clients-api.webhook');
+
         Route::resource('/clients', '\App\Http\Controllers\Admin\ClientController');
         Route::resource('/clinet_packages', '\App\Http\Controllers\Admin\client_packagesController');
         Route::get('/clinet_packages/renewal/{id}', '\App\Http\Controllers\Admin\client_packagesController@renewal')->name('clinet_packages.renewal');

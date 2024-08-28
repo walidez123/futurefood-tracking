@@ -67,7 +67,6 @@ class OrderResResource extends JsonResource
             'reference_number' => $this->reference_number, 
             'call_count' => $this->call_count,
             'whatApp_count' => $this->whatApp_count,
-            'is_finished' => $this->is_finished,
             'amount_paid' => $this->amount_paid,
             'amount' => $this->amount,
             'longitude' => $this->longitude,
@@ -75,7 +74,6 @@ class OrderResResource extends JsonResource
             'real_image_confirm' => $this->real_image_confirm,
             'what_up_massage' => $bodytag,
             'what_up_massage_ar' => $bodytag_ar,
-            'product' => ! empty($this->product) ? $this->product : '',
             'payment_method'=>$payment_method,
 
         ];

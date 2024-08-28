@@ -68,8 +68,6 @@ class AuthController extends Controller
                                 'email' => $user->email != null ? $user->email : '',
                                 'phone' => $user->phone,
                                 'avatar' => $image,
-                                'bank_name' => $user->bank_name != null ? $user->bank_name : '',
-                                'bank_account_number' => $user->bank_account_number != null ? $user->bank_account_number : '',
                                 'work' => $works,
                                 'Daily_Report_show' => $user->show_report,
                                 'api_token' => $this->apiToken,
@@ -194,7 +192,6 @@ class AuthController extends Controller
             return response()->json([
                 'success' => 1,
                 'message' => __('api_massage.A confirmation code has been sent to your phone'),
-                'code' => __('api_massage.A confirmation code has been sent to your phone'),
             ], 200);
 
         }

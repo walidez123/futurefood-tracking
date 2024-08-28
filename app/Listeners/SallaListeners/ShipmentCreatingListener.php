@@ -69,7 +69,7 @@ class ShipmentCreatingListener
             $ordersData['orderWeight'], $appSetting, $user, $address,$count);
             Log::info('save order');
             $this->saveProviderOrder($savedOrder, $webHookPayloadObject);
-            $this->storeOrderProducts($webHookPayloadObject->data->packages,$savedOrder);
+            // $this->storeOrderProducts($webHookPayloadObject->data->packages,$savedOrder);
             $assignmentService = new OrderAssignmentService();
             $assignmentService->assignToDelegate($savedOrder->id);
             $assignmentService->assignToService_Provider($savedOrder->id);
@@ -87,7 +87,7 @@ class ShipmentCreatingListener
             $ordersData['orderWeight'], $appSetting, $user, $address,$count);
             Log::info('save order');
             $this->saveProviderOrder($savedOrder, $webHookPayloadObject);
-            $this->storeOrderProducts($webHookPayloadObject->data->packages,$savedOrder);
+            // $this->storeOrderProducts($webHookPayloadObject->data->packages,$savedOrder);
             $assignmentService = new OrderAssignmentService();
             $assignmentService->assignToDelegate($savedOrder->id);
             $assignmentService->assignToService_Provider($savedOrder->id);
@@ -139,49 +139,22 @@ class ShipmentCreatingListener
         return $storeCityId;
     }
        // save products of order 
-       private function storeOrderProducts($packages,$order)
-       {
-           foreach ($packages as $package)
-           {
-            if($order->work_type==1)
-            {
-               $order->product()->create([
-                'product_name' => $package->name,
-                'sku'          => $package->sku,
-                'price'        => $package->price->amount,
-                'number'       => $package->quantity
-               ]);
-            }
-            if($order->work_type==4)
-            {
-                $good = Good::where('SKUS',$package->sku)->where('client_id',$order->user_id)->first();
-                if($good==null){
-                    $good=new Good();
-                    $good->client_id=$order->user_id;
-                    $good->company_id=$order->company_id;
-                    $good->title_en=$package->name;
-                    $good->title_ar=$package->name;
-                    $good->SKUS=$package->sku;
-                    $good->save();
+    private function storeOrderProducts($packages,$order)
+    {
+        foreach ($packages as $package)
+        {
+        // if($order->work_type==2)
+        // {
+            $order->product()->create([
+            'product_name' => $package->name,
+            'sku'          => $package->sku,
+            'price'        => $package->price->amount,
+            'number'       => $package->quantity
+            ]); 
 
-                }
-                if($good!=null)
-                {
-                    $order_goods = new OrderGoods();
-                    $order_goods->good_id = $good->id;
-                    $order_goods->number = $package->quantity;
-                    $order_goods->order_id = $order->id;
-                    $order_goods->save();
-
-                }
-               
-
-            }
-            
-           }
-
-
-       }
+        }
+        
+    }
 
     private function saveStoreAddress($userID, $storeCityId, $shippingData)
     {

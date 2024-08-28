@@ -143,10 +143,10 @@
 @endsection
 
 @section('js')
-    <script src="{{ asset('assets/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('assets/bower_components/admin/address_options.js') }}"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&language=ar">
-    </script>
-    <script type="text/javascript" src="{{ asset('assets/bower_components/admin/show_map.js') }}"></script>
+<script src="{{ asset('assets/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
+<script type="text/javascript" src="{{ asset('assets/bower_components/admin/address_options.js') }}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&language=ar">
+</script>
+<script type="text/javascript" src="{{ asset('assets/bower_components/admin/show_map.js') }}"></script>
 
 @endsection

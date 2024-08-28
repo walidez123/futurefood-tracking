@@ -41,6 +41,11 @@ $app->singleton(
     App\Exceptions\Handler::class
 );
 
+$app->singleton(
+    Illuminate\Contracts\Config\Repository::class,
+    Illuminate\Config\Repository::class
+);
+
 /*
 |--------------------------------------------------------------------------
 | Return The Application

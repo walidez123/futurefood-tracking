@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
+use App\Models\Order;
 
 
 class SendWebhookOnStatusChanged implements ShouldQueue
@@ -17,18 +18,16 @@ class SendWebhookOnStatusChanged implements ShouldQueue
     {
         $client = new Client();
         $user_weebhook=$event->model->user->webhook_url;
-        $url = 'https://webhook.site/a53893f2-198f-405f-96ba-04d55b629503'; // Replace with your webhook URL
-
+        $order=Order::find($event->model->id);
 
         $response = $client->post($user_weebhook, [
             'json' => [
                 'order_id' => $event->model->id,
-                'new_status' => $event->model->status_id ,
+                'new_status' => $event->model->status_id,
+                'referance_number' => $order->reference_number,
                 'delegate_name' =>  ! empty($event->model->delegate) ? $event->model->delegate->name : '',
                 'delegate_phone' => ! empty($event->model->delegate) ? $event->model->delegate->phone : '',
                 'tracking_link' => route('track.order', ['tracking_id' => $event->model->tracking_id]),
-
-
 
             ],
         ]);

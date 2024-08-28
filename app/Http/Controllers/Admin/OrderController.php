@@ -590,16 +590,18 @@ class OrderController extends Controller
 
                 $orderRow = Order::where('id', $order)->first();
                 $orderRow->update(['delegate_id' => $delegate_id]);
-                //mob notification :)
-                $user = User::findorfail($delegate_id);
-                $token = $user->Device_Token;
-                // if ($token != null) {
-                //     $title = 'تمت أضافة طلب شحن جديد ';
-                //     $body = 'تم اضافة طلب شحن جديد الي حسابك : '.$orderRow->order_id;
-                //     // call function that will push notifications :
-                //     $this->sendNotification($token, $title, $body);
-                // }
-                //  end
+                 //mob notification :)
+                    $user = User::findorfail($delegate_id);
+                    $token = $user->Device_Token;
+                    if ($token != null) {
+                        $title = 'تمت أضافة طلب شحن جديد ';
+                        $body = 'تم اضافة طلب شحن جديد الي حسابك : '.$orderRow->order_id;
+                        // call function that will push notifications :
+                        $message=$this->sendNotification($token, $title, $body);
+                    }
+                // end
+               
+                 
 
                 Notifications::addNotification('طلب شحن جديد', 'تم اضافة طلب شحن جديد الي حسابك : '.$orderRow->order_id, 'order', $delegate_id, 'delegate', $orderRow->id);
             }

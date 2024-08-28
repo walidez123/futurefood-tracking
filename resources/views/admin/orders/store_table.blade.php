@@ -42,7 +42,7 @@
                  class="ordersId"></td>
          @endif
          @else
-         @if (Auth()->user()->company_settin != null &&
+         @if (Auth()->user()->company_setting != null &&
          Auth()->user()->company_setting->status_res == $order->status_id)
          <td><input disabled type="checkbox" name="orders[]" value="{{ $order->id }}"
                  class="ordersId"></td>

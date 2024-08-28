@@ -177,7 +177,7 @@ class OrderShipmentCreatingListener
             'number_count'                      =>$count,
             'reference_number'                  => $referenceNumber,
             'company_id'                        => $user->company_id,
-            'work_type'                        => $user->work,
+            'work_type'                        => 2,
             "amount_paid"                      =>$amount_paid,
             "payment_method"                   =>$shippingData->payment_method,
         ];

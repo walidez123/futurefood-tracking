@@ -13,6 +13,7 @@
         "consoletvs/charts": "6.*",
         "guzzlehttp/guzzle": "^7.2",
         "khaled.alshamaa/ar-php": "^6.3",
+        "kreait/laravel-firebase": "*",
         "laravel/framework": "^10.10",
         "laravel/helpers": "^1.6",
         "laravel/sanctum": "^3.2",
@@ -21,7 +22,6 @@
         "laravel/ui": "^4.2",
         "maatwebsite/excel": "^3.1",
         "maennchen/zipstream-php": "3.0.*",
-
         "mcamara/laravel-localization": "^1.8",
         "milon/barcode": "^10.0",
         "niklasravnsborg/laravel-pdf": "^4.1",

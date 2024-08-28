@@ -2,55 +2,55 @@
 
 namespace App\Traits;
 
-use FCM;
-use LaravelFCM\Message\OptionsBuilder;
-use LaravelFCM\Message\PayloadDataBuilder;
-use LaravelFCM\Message\PayloadNotificationBuilder;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\CloudMessage;
+
+use Kreait\Firebase\ServiceAccount;
+use Kreait\Firebase\Messaging\Notification;
 
 trait PushNotificationsTrait
 {
-    public  function sendNotification($tokens , $title , $body)
+    public function sendNotification($token, $title, $body)
     {
-        $optionBuilder = new OptionsBuilder();
-        $optionBuilder->setTimeToLive(60 * 20);
+        try {
+            // إنشاء مثيل Firebase
+            $factory = (new Factory)
+                ->withServiceAccount(config('firebase.credentials.file'));
 
-        $notificationBuilder = new PayloadNotificationBuilder($title);
-        $notificationBuilder->setBody($body)
-            ->setSound('default');
+            // الحصول على خدمة المراسلة
+            $messaging = $factory->createMessaging();
 
-        $dataBuilder = new PayloadDataBuilder();
-        $dataBuilder->addData(['a_data' => 'my_data']);
+            // تحديد هدف الرسالة (token)
+            $message = CloudMessage::withTarget('token', $token)
+                ->withNotification(Notification::create($title, $body));
 
-        $option = $optionBuilder->build();
-        $notification = $notificationBuilder->build();
-        $data = $dataBuilder->build();
+            // إرسال الرسالة
+            $messaging->send($message);
 
-        $token = $tokens; // []
 
-        $downstreamResponse = FCM::sendTo($token, $option, $notification, $data);
-
+            // return "Notification sent successfully!";
+        } catch (\Exception $e) {
+            // return "Error sending notification ";
+        }
     }
 
     //
-    public function sendNotificationWithImage($tokens, $title, $body, $image)
+    public function sendNotificationWithImage($token, $title, $body, $imageUrl)
     {
-        $optionBuilder = new OptionsBuilder();
-        $optionBuilder->setTimeToLive(60 * 20);
-
-        $notificationBuilder = new PayloadNotificationBuilder($title);
-        $notificationBuilder->setBody($body)
-            ->setSound('default')->setImage($image);
-
-        $dataBuilder = new PayloadDataBuilder();
-        $dataBuilder->addData(['a_data' => 'my_data']);
-
-        $option = $optionBuilder->build();
-        $notification = $notificationBuilder->build();
-        $data = $dataBuilder->build();
-
-        $token = $tokens; // []
-
-        $downstreamResponse = FCM::sendTo($token, $option, $notification, $data);
-
+        try {
+            $factory = (new Factory)
+                ->withServiceAccount(config('firebase.credentials.file'));
+    
+            $messaging = $factory->createMessaging();
+    
+            $message = CloudMessage::withTarget('token', $token)
+                ->withNotification(Notification::create($title, $body)->withImage($imageUrl));
+    
+            $messaging->send($message);
+    
+            echo "Notification with image sent successfully!";
+        } catch (\Exception $e) {
+            echo "Error sending notification with image: " . $e->getMessage();
+        }
     }
 }

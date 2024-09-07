@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v2\Mobile;
 
 use App\Events\SendLocation;
+use App\Events\DelegateLocationUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Delegate_work;
 use App\Models\Request_join_user;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Location;
 
 class AuthController extends Controller
 {
@@ -291,8 +293,14 @@ class AuthController extends Controller
             'name' => $name,
             'avatar' => $avater,
         ];
+        $savelocation=new Location();
+        $savelocation->user_id=$id;
+        $savelocation->latitude=$lat;
+        $savelocation->longitude=$long;
+        $savelocation->save();
 
-        event(new SendLocation($location));
+        event(new DelegateLocationUpdated($id, $lat, $long));
+
 
         return response()->json(['success' => 1, 'data' => $location]);
     }

@@ -38,6 +38,7 @@ Route::webhooks('salla-webhook', 'salla');
 Route::webhooks('foodics-webhook', 'foodics');
 Route::webhooks('zid-webhook', 'zid');
 
+
 Route::get('ordertest', function () {
     dd(gmdate('Y-m-d H:i:s', 1723890982));
     // $order=Order::findorfail(8360);
@@ -223,6 +224,8 @@ Route::group(['prefix' => LaravelLocalization::setLocale()], function () {
     Route::get('/clientAssign/{id}/{lang}', '\App\Http\Controllers\HomeController@clientAssign');
     Route::get('/Service_p/{id}/{lang}', '\App\Http\Controllers\HomeController@Service_p');
 
+    //used routes
+
     Route::get('/getdelegate/{id}/{lang}', '\App\Http\Controllers\HomeController@getdelegate');
     Route::get('/getaddress/{id}/{lang}', '\App\Http\Controllers\HomeController@getaddress');
     Route::get('/getcontent/{tyoe}/{ware_id}', '\App\Http\Controllers\HomeController@getcontent');
@@ -311,9 +314,13 @@ Route::group(['prefix' => LaravelLocalization::setLocale()], function () {
             ->name('delegate.transaction.store');
         Route::delete('/delegates/transactions/{transaction}', '\App\Http\Controllers\Admin\DelegateController@transactionDestroy')
             ->name('delegate.transaction.destroy');
-        Route::get('/delegates/tracking', '\App\Http\Controllers\Admin\DelegateController@tracking')
-            ->name('delegates.tracking');
+ 
+        //used routes for live tracking
         Route::get('/tracking-map/{id}', 'App\Http\Controllers\Admin\DelegateController@livetracking');
+        Route::get('/delegates/tracking', '\App\Http\Controllers\Admin\DelegateController@tracking')
+        ->name('delegates.tracking');
+
+        //------------
         Route::get('delegates/tracking-map/', 'App\Http\Controllers\Admin\DelegateController@trackingdelegates');
         Route::get('/delegates/orders/{delegate}', '\App\Http\Controllers\Admin\DelegateController@orders')->name('delegates.orders');
         Route::get('/delegates/balances/transactions/{id}', '\App\Http\Controllers\Admin\DelegateController@transactions')

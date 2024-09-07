@@ -135,3 +135,5 @@ Route::middleware('localization')->group(function () {
 });
 
 
+Route::get('/latest-location/{id}', 'App\Http\Controllers\Admin\DelegateController@getLocations');
+Route::post('/update-location/{id}', 'App\Http\Controllers\Admin\DelegateController@updateLocation');

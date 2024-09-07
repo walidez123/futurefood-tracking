@@ -1,148 +1,121 @@
-<!doctype html>
-<html lang="en">
-
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>🌏 Google Maps Geolocation Example</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-
-
-
-    <style>
-    html {
-        font-family: sans-serif;
-        line-height: 1.15;
-        height: 100%;
-    }
-
-    body {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        font-size: 1rem;
-        font-weight: 400;
-        line-height: 1.5;
-        color: #1a1a1a;
-        text-align: left;
-        height: 100%;
-        background-color: #fff;
-    }
-
-    .container {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .map {
-        flex: 1;
-        background: #f0f0f0;
-    }
-    </style>
 </head>
-
 <body>
-    <main class="container">
-        <div id="map" class="map"></div>
-    </main>
+    <div id="map" style="height: 500px;"></div>
 
+    <script>
+        // Initialize the map with PHP-provided latitude and longitude, or default values
+        var map = L.map('map').setView([{{ $lat ?? 24.7254554 }}, {{ $long ?? 47.1521883 }}], 10);
 
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-    <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRlTT-DjfcAKMEY-0ePypWkjfEiKrCdyE&callback=initMap"></script> -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRlTT-DjfcAKMEY-0ePypWkjfEiKrCdyE&sensor=false">
-    </script>
-      <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-      <script>
-    let map;
-    let marker;
-    var lat = 24.7212691;
-    var lan = 48.0715354;
-    var deg_id = <?= $delegate_id ?>;
+        // Initialize the marker with the initial latitude and longitude
+        var marker = L.marker([{{ $lat ?? 24.7254554 }}, {{ $long ?? 47.1521883 }}]).addTo(map);
 
-    let myLatLng = {
-        lat: lat,
-        lng: lan
-    };
-    async function initMap() {
-        const {
-            Map
-        } = await google.maps.importLibrary("maps");
-        myLatLng = {
-            lat: lat,
-            lng: lan
-        };
-        map = new Map(document.getElementById("map"), {
-            center: {
-                lat: -34.397,
-                lng: 150.644
-            },
-            zoom: 8,
-        });
-        map.setCenter(myLatLng);
-        // marker = new google.maps.Marker({
-        //     position: myLatLng,
-        //     map: map,
-
-        // });
-       
-    }
-    initMap();
-    function updatePosition(newLat, newLng) {
-        const latLng = {
-            lat: parseFloat(newLat),
-            lng: parseFloat(newLng)
-        };
-        marker.setPosition(latLng);
-        map.setCenter(latLng);
-    }
-
-    let n = 0;
-
-
-    // Enable pusher logging - don't include this in production
-    // Pusher.logToConsole = true;
-
-    var pusher = new Pusher('b8263b21fdf7fc1cf8d0', {
-      cluster: 'eu'
-    });
-
-    var channel = pusher.subscribe('location.{{$delegate_id}}');
-    let markers = [];
-
-
-    channel.bind('App\\Events\\SendLocation', function(data) {
-        const newMarker = new google.maps.Marker({
-                    position: new google.maps.LatLng(data.location['lat'], data.location['long']),
-                    map: map
-        });
-        markers.push(newMarker);
-        if (markers.length > 1) {
-            const line = new google.maps.Polyline({
-                path: [markers[markers.length - 2].getPosition(), newMarker.getPosition()],
-                geodesic: true,
-                strokeColor: '#FF0000',
-                strokeOpacity: 1.0,
-                strokeWeight: 2,
-            });
-
-            line.setMap(map);
+        // Function to update the marker position and center the map
+        function updateMarker(latitude, longitude) {
+            if (latitude && longitude) {
+                marker.setLatLng([latitude, longitude]);
+                map.setView([latitude, longitude], map.getZoom()); // Center map on the new marker position
+                console.log('Marker updated to:', latitude, longitude);
+            } else {
+                console.error('Invalid latitude or longitude:', latitude, longitude);
+            }
         }
-    });
 
-        
-              
-                //  updatePosition(data.location['lat'], data.location['long']);
-  </script>
+        // Set up WebSocket connection
+        var ws = new WebSocket('ws://localhost:8080');
 
-   
+        ws.onopen = function() {
+            console.log('Connected to WebSocket server');
+        };
 
-    
+        ws.onmessage = function(event) {
+            try {
+                var data = JSON.parse(event.data);
+                if (data.latitude && data.longitude) {
+                    updateMarker(data.latitude, data.longitude);
+                } else {
+                    console.error('Invalid data received from WebSocket:', data);
+                }
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+            }
+        };
 
+        ws.onclose = function() {
+            console.log('Disconnected from WebSocket server');
+        };
 
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
 
+        // Function to fetch the latest location data every 5 seconds
+        function fetchLocation() {
+            fetch(`/api/latest-location/{{ $delegateId }}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.latitude !== undefined && data.longitude !== undefined) {
+                        updateMarker(data.latitude, data.longitude);
+                        console.log('Fetched location:', data.latitude, data.longitude);
+                    } else {
+                        console.error('Invalid data received from API:', data);
+                    }
+                })
+                .catch(error => console.error('Error fetching location:', error));
+        }
 
+        // Fetch the location every 5 seconds
+        setInterval(fetchLocation, 5000);
+
+        // Function to update the location using the API
+        function updateLocation(delegateId, latitude, longitude) {
+            fetch(`/api/update-location/${delegateId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log('Location updated successfully:', data);
+                } else {
+                    console.error('Failed to update location:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating location:', error);
+            });
+        }
+
+        // Example usage: Update the location to new coordinates
+        // Replace with actual values as needed
+        updateLocation(5, 42.712776, -70.005974); // Example coordinates for New York City
+    </script>
 </body>
-
 </html>

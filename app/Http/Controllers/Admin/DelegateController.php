@@ -17,44 +17,35 @@ use App\Exports\BalanceTransactionExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Orders_rules;
 use App\Models\OrderRulesDetail;
-
-
-
-
+use App\Models\Location;
+use Carbon\Carbon;
+use WebSocket\Client;
 
 class DelegateController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:show_delegate', ['only'=>'index', 'show']);
-        $this->middleware('permission:add_delegate', ['only'=>'create', 'store']);
-        $this->middleware('permission:edit_delegate', ['only'=>'edit', 'update']);
-        $this->middleware('permission:delete_delegate', ['only'=>'destroy']);
-       
+        $this->middleware('permission:show_delegate', ['only' => 'index', 'show']);
+        $this->middleware('permission:add_delegate', ['only' => 'create', 'store']);
+        $this->middleware('permission:edit_delegate', ['only' => 'edit', 'update']);
+        $this->middleware('permission:delete_delegate', ['only' => 'destroy']);
+
         $this->middleware('permission:show_follow', ['only' => 'tracking', 'livetracking', 'trackingdelegates']);
-       
     }
 
     public function index(Request $request)
     {
-        $type=$request->type;
+        $type = $request->type;
         $this->authorize('checkTypeDelegateCreate', [User::class, $request->type]);
-        if($type==NULL)
-        {        
-            $delegates = User::where('company_id',Auth()->user()->company_id)->where('user_type', 'delegate')->orderBy('id', 'desc')->paginate(25);
+        if ($type == NULL) {
+            $delegates = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'delegate')->orderBy('id', 'desc')->paginate(25);
+        } else {
 
-
-        }else{
-          
-            $delegates = User::where('company_id',Auth()->user()->company_id)->where('user_type', 'delegate')->whereHas('delegate_work', function ($query) use ($type) {
+            $delegates = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'delegate')->whereHas('delegate_work', function ($query) use ($type) {
                 $query->where('work', $type);
             })->orderBy('id', 'desc')->paginate(25);
-
-
         }
-        return view('admin.delegates.index', compact('delegates','type'));
-
-     
+        return view('admin.delegates.index', compact('delegates', 'type'));
     }
 
     public function orders($id)
@@ -69,29 +60,26 @@ class DelegateController extends Controller
     {
         // $this->authorize('checkTypeDelegateCreate', [User::class, $request->type]);
 
-      
-            $code = codegenerateDelegate();
-            $type = $request->type;
-            //
-            if ($type == null) {
-                $clients = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'client')->orderBy('id', 'desc')->get();
-                $service_providers = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'service_provider')->get();
 
-            } else {
-                $clients = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'client')->where('work', $type)->orderBy('id', 'desc')->get();
-                $service_providers = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'service_provider')->whereHas('user_works', function ($query) use ($type) {
-                    $query->where('work', $type);
-                })->orderBy('id', 'desc')->get();
+        $code = codegenerateDelegate();
+        $type = $request->type;
+        //
+        if ($type == null) {
+            $clients = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'client')->orderBy('id', 'desc')->get();
+            $service_providers = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'service_provider')->get();
+        } else {
+            $clients = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'client')->where('work', $type)->orderBy('id', 'desc')->get();
+            $service_providers = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'service_provider')->whereHas('user_works', function ($query) use ($type) {
+                $query->where('work', $type);
+            })->orderBy('id', 'desc')->get();
+        }
+        $supervisors = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'supervisor')->orderBy('id', 'desc')->get();
+        $cities = City::get();
 
-            }
-            $supervisors = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'supervisor')->orderBy('id', 'desc')->get();
- $cities = City::get();
+        $Vehicles = Vehicle::where('company_id', Auth()->user()->company_id)->orderBy('id', 'desc')->get();
 
-            $Vehicles = Vehicle::where('company_id', Auth()->user()->company_id)->orderBy('id', 'desc')->get();
-
-            //
-            return view('admin.delegates.add', compact('cities', 'type', 'clients', 'supervisors', 'service_providers', 'Vehicles', 'code'));
-    
+        //
+        return view('admin.delegates.add', compact('cities', 'type', 'clients', 'supervisors', 'service_providers', 'Vehicles', 'code'));
     }
 
     /**
@@ -120,39 +108,35 @@ class DelegateController extends Controller
         $delegateData['company_id'] = Auth()->user()->company_id;
 
         if ($request->hasFile('avatar')) {
-            $avatar = 'avatar/'.$request->user_type.'/'.$request->file('avatar')->hashName();
+            $avatar = 'avatar/' . $request->user_type . '/' . $request->file('avatar')->hashName();
             $uploaded = $request->file('avatar')->storeAs('public', $avatar);
             if ($uploaded) {
                 $delegateData['avatar'] = $avatar;
             }
-
         }
 
         if ($request->hasFile('license_photo')) {
-            $license_photo = 'avatar/'.$request->user_type.'/'.$request->file('license_photo')->hashName();
+            $license_photo = 'avatar/' . $request->user_type . '/' . $request->file('license_photo')->hashName();
             $uploaded = $request->file('license_photo')->storeAs('public', $license_photo);
             if ($uploaded) {
                 $delegateData['license_photo'] = $license_photo;
             }
-
-        } if ($request->hasFile('residence_photo')) {
-            $residence_photo = 'avatar/'.$request->user_type.'/'.$request->file('residence_photo')->hashName();
+        }
+        if ($request->hasFile('residence_photo')) {
+            $residence_photo = 'avatar/' . $request->user_type . '/' . $request->file('residence_photo')->hashName();
             $uploaded = $request->file('residence_photo')->storeAs('public', $residence_photo);
             if ($uploaded) {
                 $delegateData['residence_photo'] = $residence_photo;
             }
-
         }
         $delegate = User::create($delegateData);
-        foreach($request->works as $work)
-        {
+        foreach ($request->works as $work) {
 
-        
-        $Company_work=new Delegate_work();
-        $Company_work->delegate_id=$delegate->id;
-        $Company_work->work=$work;
-        $Company_work->save();
 
+            $Company_work = new Delegate_work();
+            $Company_work->delegate_id = $delegate->id;
+            $Company_work->work = $work;
+            $Company_work->save();
         }
         if ($request->client) {
             foreach ($request->client as $client_id) {
@@ -198,50 +182,48 @@ class DelegateController extends Controller
 
         $this->authorize('showDelegateCompany', [User::class, $delegate]);
 
-       
-            $supervisor = $delegate->Supervisors->pluck('manger_id')->toArray();
-            $supervisors = User::whereIn('id', $supervisor)->get();
-            $statuses = Status::where('company_id', Auth()->user()->company_id)->orderBy('sort', 'ASC')->get();
-            $Delegate_clients = Delegate_client::where('delegate_id', $delegate->id)->get();
 
-            return view('admin.delegates.show', compact('delegate', 'statuses', 'supervisors', 'Delegate_clients'));
-       
+        $supervisor = $delegate->Supervisors->pluck('manger_id')->toArray();
+        $supervisors = User::whereIn('id', $supervisor)->get();
+        $statuses = Status::where('company_id', Auth()->user()->company_id)->orderBy('sort', 'ASC')->get();
+        $Delegate_clients = Delegate_client::where('delegate_id', $delegate->id)->get();
+
+        return view('admin.delegates.show', compact('delegate', 'statuses', 'supervisors', 'Delegate_clients'));
     }
 
     public function edit(User $delegate)
     {
         $this->authorize('showDelegateCompany', [User::class, $delegate]);
 
-      
-            $works=Delegate_work::where('delegate_id',$delegate->id)->pluck('work')->toArray();
 
- $cities = City::get();
+        $works = Delegate_work::where('delegate_id', $delegate->id)->pluck('work')->toArray();
 
-            $region = Neighborhood::where('id', $delegate->region_id)->first();
-            $Delegate_client = Delegate_client::where('delegate_id', $delegate->id)->pluck('client_id')->toArray();
-           
-                $clients = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'client')->whereIn('work', $works)->orderBy('id', 'desc')->get();
-                $service_providers = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'service_provider')->whereHas('user_works', function ($query) use ($works) {
-                    $query->whereIn('work', $works);
-                })->orderBy('id', 'desc')->get();
+        $cities = City::get();
 
-            
-            $Delegate_Mangers = Delegate_Manger::where('delegate_id', $delegate->id)->pluck('manger_id')->toArray();
-            $supervisors = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'supervisor')->orderBy('id', 'desc')->get();
+        $region = Neighborhood::where('id', $delegate->region_id)->first();
+        $Delegate_client = Delegate_client::where('delegate_id', $delegate->id)->pluck('client_id')->toArray();
 
-            $Vehicles = Vehicle::where('company_id', Auth()->user()->company_id)->orderBy('id', 'desc')->get();
+        $clients = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'client')->whereIn('work', $works)->orderBy('id', 'desc')->get();
+        $service_providers = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'service_provider')->whereHas('user_works', function ($query) use ($works) {
+            $query->whereIn('work', $works);
+        })->orderBy('id', 'desc')->get();
 
-            return view('admin.delegates.edit', compact('works','delegate', 'cities', 'region', 'clients', 'Delegate_client', 'service_providers', 'supervisors', 'Delegate_Mangers', 'Vehicles'));
-      
+
+        $Delegate_Mangers = Delegate_Manger::where('delegate_id', $delegate->id)->pluck('manger_id')->toArray();
+        $supervisors = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'supervisor')->orderBy('id', 'desc')->get();
+
+        $Vehicles = Vehicle::where('company_id', Auth()->user()->company_id)->orderBy('id', 'desc')->get();
+
+        return view('admin.delegates.edit', compact('works', 'delegate', 'cities', 'region', 'clients', 'Delegate_client', 'service_providers', 'supervisors', 'Delegate_Mangers', 'Vehicles'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
             'name' => 'required',
-            'code' => 'required|max:7|unique:users,code,'.$id,
+            'code' => 'required|max:7|unique:users,code,' . $id,
             // 'email' => 'unique:users,email,'.$id,
-            'phone' => 'required|max:10|starts_with:05|unique:users,phone,'.$id,
+            'phone' => 'required|max:10|starts_with:05|unique:users,phone,' . $id,
             'Residency_number' => 'required|max:10',
             'avatar' => 'mimes:jpeg,png,jpg',
             'residence_photo' => 'mimes:jpeg,png,jpg',
@@ -261,38 +243,34 @@ class DelegateController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            $avatar = 'avatar/'.$delegate->user_type.'/'.$request->file('avatar')->hashName();
+            $avatar = 'avatar/' . $delegate->user_type . '/' . $request->file('avatar')->hashName();
             $uploaded = $request->file('avatar')->storeAs('public', $avatar);
             if ($uploaded) {
                 $delegateData['avatar'] = $avatar;
             }
-
         }
         if ($request->hasFile('license_photo')) {
-            $license_photo = 'avatar/'.$request->user_type.'/'.$request->file('license_photo')->hashName();
+            $license_photo = 'avatar/' . $request->user_type . '/' . $request->file('license_photo')->hashName();
             $uploaded = $request->file('license_photo')->storeAs('public', $license_photo);
             if ($uploaded) {
                 $delegateData['license_photo'] = $license_photo;
             }
-
-        } if ($request->hasFile('residence_photo')) {
-            $residence_photo = 'avatar/'.$request->user_type.'/'.$request->file('residence_photo')->hashName();
+        }
+        if ($request->hasFile('residence_photo')) {
+            $residence_photo = 'avatar/' . $request->user_type . '/' . $request->file('residence_photo')->hashName();
             $uploaded = $request->file('residence_photo')->storeAs('public', $residence_photo);
             if ($uploaded) {
                 $delegateData['residence_photo'] = $residence_photo;
             }
-
         }
         $delegate->update($delegateData);
-        Delegate_work::where('delegate_id',$delegate->id)->delete();
-        foreach($request->works as $work)
-        {
-           
-                $Company_work=new Delegate_work();
-                $Company_work->delegate_id=$delegate->id;
-                $Company_work->work=$work;
-                $Company_work->save();
-            
+        Delegate_work::where('delegate_id', $delegate->id)->delete();
+        foreach ($request->works as $work) {
+
+            $Company_work = new Delegate_work();
+            $Company_work->delegate_id = $delegate->id;
+            $Company_work->work = $work;
+            $Company_work->save();
         }
 
         if ($request->client) {
@@ -304,7 +282,6 @@ class DelegateController extends Controller
                 $Delegate_client->client_id = $client_id;
                 $Delegate_client->delegate_id = $delegate->id;
                 $Delegate_client->save();
-
             }
         }
         if ($request->manger_name) {
@@ -315,7 +292,6 @@ class DelegateController extends Controller
                 $Delegate_Manger->manger_id = $manger_id;
                 $Delegate_Manger->delegate_id = $delegate->id;
                 $Delegate_Manger->save();
-
             }
         }
         $notification = [
@@ -329,100 +305,91 @@ class DelegateController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-       
 
-            Delegate_client::where('delegate_id', $user->id)->delete();
-            Delegate_Manger::where('delegate_id', $user->id)->delete();
-            Delegate_work::where('delegate_id', $user->id)->delete();
 
-            $orderR=Orders_rules::where('delegate_id',$user->id)->first();
-            OrderRulesDetail::where('order_rules_id',$orderR->id)->delete();
-            $orderR->delete();
-            if ($user->company_id != Auth()->user()->company_id) {
-                return redirect()->back()->with('error', 'لا يوجد هذا المندوب فى حسابك');
-            }
-            User::findOrFail($id)->delete();
-            $notification = [
-                'message' => '<h3>Delete Successfully</h3>',
-                'alert-type' => 'success',
-            ];
+        Delegate_client::where('delegate_id', $user->id)->delete();
+        Delegate_Manger::where('delegate_id', $user->id)->delete();
+        Delegate_work::where('delegate_id', $user->id)->delete();
 
-            return back()->with($notification);
-        
+        $orderR = Orders_rules::where('delegate_id', $user->id)->first();
+        OrderRulesDetail::where('order_rules_id', $orderR->id)->delete();
+        $orderR->delete();
+        if ($user->company_id != Auth()->user()->company_id) {
+            return redirect()->back()->with('error', 'لا يوجد هذا المندوب فى حسابك');
+        }
+        User::findOrFail($id)->delete();
+        $notification = [
+            'message' => '<h3>Delete Successfully</h3>',
+            'alert-type' => 'success',
+        ];
+
+        return back()->with($notification);
     }
 
     public function balances(Request $request)
     {
         $this->authorize('checkTypeDelegateCreate', [User::class, $request->type]);
 
-           if($request->type==null)
-           {
+        if ($request->type == null) {
             $delegates = User::orderBy('id', 'desc')->where('company_id', Auth()->user()->company_id)->where('user_type', 'delegate')->paginate(25);
-
-           }else{
-            $type=$request->type;
-            $delegates = User::where('company_id',Auth()->user()->company_id)->where('user_type', 'delegate')->whereHas('delegate_work', function ($query) use ($type) {
+        } else {
+            $type = $request->type;
+            $delegates = User::where('company_id', Auth()->user()->company_id)->where('user_type', 'delegate')->whereHas('delegate_work', function ($query) use ($type) {
                 $query->where('work', $type);
             })->orderBy('id', 'desc')->paginate(25);
-           }
-      
-            if (! empty($delegates)) {
-                foreach ($delegates as $client) {
-                    $transactions = ClientTransactions::where('user_id', $client->id);
-                    $client->count_creditor = $transactions->sum('creditor');
+        }
 
-                    $client->count_debtor = $transactions->sum('debtor');
-                }
+        if (! empty($delegates)) {
+            foreach ($delegates as $client) {
+                $transactions = ClientTransactions::where('user_id', $client->id);
+                $client->count_creditor = $transactions->sum('creditor');
 
+                $client->count_debtor = $transactions->sum('debtor');
             }
-            $type = $request->type;
+        }
+        $type = $request->type;
 
-            return view('admin.delegates.balances', compact('delegates', 'type'));
-      
+        return view('admin.delegates.balances', compact('delegates', 'type'));
     }
 
     public function transactions(Request $request, $id)
     {
-          switch ($request->input('action')) {
+        switch ($request->input('action')) {
             case 'export':
-                $delegate=User::findOrFail($id);
-                $file_name=$delegate->name.'_transactions.xlsx';
-                return Excel::download(new BalanceTransactionExport($delegate->id,$request),$file_name);                
+                $delegate = User::findOrFail($id);
+                $file_name = $delegate->name . '_transactions.xlsx';
+                return Excel::download(new BalanceTransactionExport($delegate->id, $request), $file_name);
                 break;
+        }
+
+
+        $from = $request->get('from');
+        $to = $request->get('to');
+        $delegate = User::orderBy('id', 'desc')->where('id', $id)->where('user_type', 'delegate')->first();
+
+        if ($delegate) {
+            $transactions = ClientTransactions::orderBy('id', 'desc')->where('user_id', $id);
+            if ($from != null && $to != null) {
+                $transactions = $transactions->whereDate('created_at', '>=', $from)
+                    ->whereDate('created_at', '<=', $to);
             }
+            $alltransactions = $transactions->orderBy('id', 'desc')->paginate(50);
+            $count_creditor = $transactions->sum('creditor');
+            $count_debtor = $transactions->sum('debtor');
 
-        
-            $from = $request->get('from');
-            $to = $request->get('to');
-            $delegate = User::orderBy('id', 'desc')->where('id', $id)->where('user_type', 'delegate')->first();
-           
-                if ($delegate) {
-                    $transactions = ClientTransactions::orderBy('id', 'desc')->where('user_id', $id);
-                    if ($from != null && $to != null) {
-                        $transactions = $transactions->whereDate('created_at', '>=', $from)
-                            ->whereDate('created_at', '<=', $to);
-                    }
-                    $alltransactions = $transactions->orderBy('id', 'desc')->paginate(50);
-                    $count_creditor = $transactions->sum('creditor');
-                    $count_debtor = $transactions->sum('debtor');
-    
-                    $count_order_creditor = $transactions->whereNotNull('order_id')->sum('creditor');
-    
-                    $count_order_debtor = $transactions->whereNotNull('order_id')->sum('debtor');
-    
-                    $transactions = $transactions->paginate(50);
-    
-                    return view('admin.delegates.balance-transactions', compact('alltransactions', 'transactions', 'delegate', 'from', 'to', 'count_debtor', 'count_creditor', 'count_order_creditor', 'count_order_debtor'));
-                } else {
-                    abort(404);
-                }
+            $count_order_creditor = $transactions->whereNotNull('order_id')->sum('creditor');
 
-      
-      
-       
+            $count_order_debtor = $transactions->whereNotNull('order_id')->sum('debtor');
+
+            $transactions = $transactions->paginate(50);
+
+            return view('admin.delegates.balance-transactions', compact('alltransactions', 'transactions', 'delegate', 'from', 'to', 'count_debtor', 'count_creditor', 'count_order_creditor', 'count_order_debtor'));
+        } else {
+            abort(404);
+        }
     }
 
- 
+
     // 
     public function transactionStore(Request $request)
     {
@@ -432,40 +399,37 @@ class DelegateController extends Controller
         ]);
 
         $client = User::find($request->user_id);
-        
-            $data = $request->all();
-            $amount = 0.00;
-            if ($request->debtor) {
-                $amount = $request->debtor;
-            } elseif ($request->amount) {
-                $amount = $request->amount;
+
+        $data = $request->all();
+        $amount = 0.00;
+        if ($request->debtor) {
+            $amount = $request->debtor;
+        } elseif ($request->amount) {
+            $amount = $request->amount;
+        }
+        if ($request->hasFile('image')) {
+            $image = 'avatar/transactions/' . $request->file('image')->hashName();
+            $uploaded = $request->file('image')->storeAs('public', $image);
+            if ($uploaded) {
+                $data['image'] = $image;
             }
-            if ($request->hasFile('image')) {
-                $image = 'avatar/transactions/'.$request->file('image')->hashName();
-                $uploaded = $request->file('image')->storeAs('public', $image);
-                if ($uploaded) {
-                    $data['image'] = $image;
-                }
-            }
-            if ($request->type == 'debtor') {
-                $data['debtor'] = $amount;
-                $data['creditor'] = 0.00;
-                $data['transaction_type_id'] = 7;
+        }
+        if ($request->type == 'debtor') {
+            $data['debtor'] = $amount;
+            $data['creditor'] = 0.00;
+            $data['transaction_type_id'] = 7;
 
-                ClientTransactions::create($data);
+            ClientTransactions::create($data);
+        } elseif ($request->type == 'creditor') {
 
-            } elseif ($request->type == 'creditor') {
+            $data['creditor'] = $amount;
+            $data['debtor'] = 0.00;
+            $data['transaction_type_id'] = 8;
 
-                $data['creditor'] = $amount;
-                $data['debtor'] = 0.00;
-                $data['transaction_type_id'] = 8;
+            ClientTransactions::create($data);
+        }
 
-                ClientTransactions::create($data);
-            }
-
-            return back()->with('success', 'Save Successfully');
-       
-
+        return back()->with('success', 'Save Successfully');
     }
 
     public function transactionDestroy($id)
@@ -473,14 +437,13 @@ class DelegateController extends Controller
         $Transactions = ClientTransactions::findOrFail($id);
         $client = User::findOrFail($Transactions->user_id);
 
-            ClientTransactions::findOrFail($id)->delete();
-            $notification = [
-                'message' => '<h3>Delete Successfully</h3>',
-                'alert-type' => 'success',
-            ];
+        ClientTransactions::findOrFail($id)->delete();
+        $notification = [
+            'message' => '<h3>Delete Successfully</h3>',
+            'alert-type' => 'success',
+        ];
 
-            return back()->with($notification);
-       
+        return back()->with($notification);
     }
 
 
@@ -499,11 +462,116 @@ class DelegateController extends Controller
 
     public function livetracking($id)
     {
-        $delegate_id = $id;
+        $delegateId = $id;
+        $startTime = \Carbon\Carbon::now()->startOfDay();
+        $endTime = \Carbon\Carbon::now()->endOfDay();
+        $locations = Location::where('user_id', $delegateId)
+            ->orderBy('created_at')
+            ->get();
 
-        return view('admin.delegates.livetracking', compact('delegate_id'));
-
+        $lat = $locations->first()->latitude;
+        $long = $locations->first()->longitude;
+        return view('admin.delegates.livetracking', compact('locations', 'delegateId', 'lat', 'long'));
     }
+    public function updateLocation(Request $request, $id)
+    {
+        try {
+            \Log::info('UpdateLocation Request Started:', ['user_id' => $id]);
+    
+            // Validate the request
+            $validated = $request->validate([
+                'latitude' => 'required|numeric',
+                'longitude' => 'required|numeric',
+            ]);
+            \Log::info('Validation Passed:', ['validated_data' => $validated]);
+    
+            // Check if a location record exists for the given user_id
+            $location = Location::where('user_id', $id)->first();
+            \Log::info('Location Retrieved:', ['location' => $location]);
+    
+            if ($location) {
+                \Log::info('Updating Existing Location Record:', ['user_id' => $id]);
+                $location->update([
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
+                ]);
+                \Log::info('Location Updated:', ['location' => $location]);
+            } else {
+                \Log::info('Creating New Location Record:', ['user_id' => $id]);
+                $location = Location::create([
+                    'user_id' => $id,
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
+                ]);
+                \Log::info('New Location Created:', ['location' => $location]);
+            }
+    
+            // Log the WebSocket operation
+            \Log::info('Sending Location to WebSocket:', ['user_id' => $id, 'latitude' => $location->latitude, 'longitude' => $location->longitude]);
+            $this->sendLocationToWebSocket($id, $location->latitude, $location->longitude);
+    
+            \Log::info('UpdateLocation Request Completed Successfully:', ['user_id' => $id]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error in UpdateLocation:', [
+                'exception_message' => $e->getMessage(),
+                'exception_trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['success' => false, 'error' => 'Internal Server Error'], 500);
+        }
+    }
+    
+    
+    
+
+   
+
+    private function sendLocationToWebSocket($delegateId, $latitude, $longitude)
+    {
+        try {
+            // Initialize WebSocket client
+            $client = new Client("ws://localhost:8080");
+    
+            // Prepare message payload
+            $payload = json_encode([
+                'type' => 'location-update',
+                'delegateId' => $delegateId,
+                'latitude' => $latitude,
+                'longitude' => $longitude
+            ]);
+    
+            // Send message
+            $client->send($payload);
+    
+            // Close the connection
+            $client->close();
+        } catch (\Exception $e) {
+            // Log error message
+            \Log::error("WebSocket error: " . $e->getMessage());
+        }
+    }
+    
+
+    public function getLocations($id)
+    {
+        $delegateId = $id;
+
+        $location = Location::where('user_id', $delegateId)
+            ->orderBy('created_at', 'desc') // Get the latest location
+            ->first(); // Use first() instead of get() to get a single record
+
+        if (!$location) {
+            return response()->json(['error' => 'No location found'], 404);
+        }
+
+        return response()->json([
+            'delegateId' => $delegateId,
+            'latitude' => $location->latitude,
+            'longitude' => $location->longitude
+        ]);
+    }
+
+
 
     public function trackingdelegates()
     {
@@ -518,14 +586,11 @@ class DelegateController extends Controller
         if ($delegate->is_active == 1) {
             $delegate->is_active = 0;
             $delegate->save();
-
         } else {
             $delegate->is_active = 1;
             $delegate->save();
-
         }
 
         return back();
-
     }
 }

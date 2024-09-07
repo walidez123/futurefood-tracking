@@ -1,11 +1,12 @@
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
 
-import './bootstrap';
+window.Pusher = Pusher;
 
-import Alpine from 'alpinejs';
-
-
-
-
-window.Alpine = Alpine;
-
-Alpine.start();
+window.Echo = new Echo({
+    broadcaster: 'pusher',
+    key: process.env.MIX_PUSHER_APP_KEY,
+    cluster: process.env.MIX_PUSHER_APP_CLUSTER,
+    encrypted: true,
+    forceTLS: false, // Ensure SSL is used only if required
+});
